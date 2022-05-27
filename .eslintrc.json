@@ -1,0 +1,16 @@
+{
+    "env": {
+        "node": true,
+        "commonjs": true,
+        "es2021": true
+    },
+    "extends": "eslint:recommended",
+    "parserOptions": {
+        "ecmaVersion": "latest"
+    },
+    "rules": {
+        // 1 warning, 2 error
+        "semi": [1, "always"],
+        "no-unused-vars": [1]
+    }
+}
