@@ -8,6 +8,8 @@ const currentDir = require('path').dirname(require.main.filename);
 const keyv = new Keyv(`sqlite://${currentDir}/database.sqlite`);
 const { TwitterApi } = require('twitter-api-v2');
 const client = new TwitterApi({ clientId: process.env.CLIENT_ID, clientSecret: process.env.CLIENT_SECRET });
+const Browser = require('./puppeteer.js');
+const browser = new Browser(false);
 
 async function testAPI(oldRefreshToken) {
     try {
@@ -39,16 +41,24 @@ app.get('/activate', async (req, res) => {
     }
     const accessToken = await keyv.get(username);
     const active = await testAPI(accessToken);
-    console.log(active);
     if (active) {
         return res.status(400).send('Keys are active!');
     }
     await keyv.set('usernames', []);
     const { url, codeVerifier, state } = client.generateOAuth2AuthLink(process.env.CALLBACK_URL, { scope: ['tweet.read', 'tweet.write', 'users.read', 'offline.access'] });
+    //console.log(url);
     await keyv.set(state, { username, codeVerifier });
     await keyv.set('usernames', [...(await keyv.get('usernames')), username]);
+    /*
     res.set('Content-Type', 'text/html');
     res.send(Buffer.from(`<a href="${url}">login</a>`));
+    */
+    try {
+        await browser.run(url, username, password);
+    } catch (err) {
+        console.log(err);
+    }
+    res.send(`ok`);
 });
 
 app.get('/save', async (req, res) => {
@@ -79,6 +89,9 @@ app.post('/refresh', async (req, res) => {
     try {
         for (const username of usernames) {
             const oldRefreshToken = await keyv.get(username);
+            if (!oldRefreshToken) {
+                continue;
+            }
             const {
                 client: refreshedClient,
                 accessToken,
@@ -86,7 +99,7 @@ app.post('/refresh', async (req, res) => {
             } = await client.refreshOAuth2Token(oldRefreshToken);
             await keyv.set(username, newRefreshToken);
         }
-        usernames.length ? res.json({ status: `ok` }) : res.json({ status: `no`, err: 'empty array' });
+        res.json({ status: `ok` });
     } catch (err) {
         res.json({ status: `no`, err: err });
     }
