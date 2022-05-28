@@ -21,7 +21,7 @@ async function testAPI(oldRefreshToken) {
             refreshToken: newRefreshToken,
         } = await client.refreshOAuth2Token(oldRefreshToken);
         const { data: userObject } = await refreshedClient.v2.me();
-        console.log(userObject);
+        console.log(`test ok for ${userObject.name}`);
         return true;
     } catch (err) {
         console.log(`${oldRefreshToken} not active`);
@@ -42,10 +42,12 @@ app.get('/activate', async (req, res) => {
         return res.status(400).send('Provide name and pass!');
     }
     const accessToken = accessTokens.get(username);
+    // TODO: no point, see below
     const active = await testAPI(accessToken);
     if (active) {
         return res.status(400).send('Keys are active!');
     }
+    // TODO: THIS effectively resets all stored keys
     const { url, codeVerifier, state } = client.generateOAuth2AuthLink(process.env.CALLBACK_URL, { scope: ['tweet.read', 'tweet.write', 'users.read', 'offline.access'] });
     states.set(state, { username, codeVerifier });
     try {
@@ -77,7 +79,10 @@ app.get('/save', async (req, res) => {
             accessTokens.set(username, refreshToken);
             res.send(`ok`);
         })
-        .catch((err) => res.status(403).send(err));
+        .catch((err) => {
+            console.log(err);
+            res.status(403).send(err)
+        });
 })
 
 app.post('/refresh', async (req, res) => {;
@@ -88,9 +93,11 @@ app.post('/refresh', async (req, res) => {;
                 accessToken,
                 refreshToken: newRefreshToken,
             } = await client.refreshOAuth2Token(oldRefreshToken);
+            console.log(`token refreshed for ${username}`);
             accessTokens.set(username, newRefreshToken);
         } catch (err) {
             console.log(`not a valid key for ${username}`);
+            console.log(err.data);
             continue;
         }
     }
