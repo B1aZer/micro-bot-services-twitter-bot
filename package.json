@@ -9,10 +9,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@keyv/sqlite": "^3.5.2",
     "dotenv": "^16.0.1",
     "express": "^4.18.1",
-    "keyv": "^4.3.0",
     "twitter-api-v2": "^1.12.2"
   },
   "devDependencies": {

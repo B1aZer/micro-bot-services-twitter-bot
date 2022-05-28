@@ -1,17 +1,19 @@
 require('dotenv').config();
 
-const Keyv = require('keyv');
 const express = require('express');
 const app = express();
 const port = 3022;
-const currentDir = require('path').dirname(require.main.filename);
-const keyv = new Keyv(`sqlite://${currentDir}/database.sqlite`);
+const DB = require('../_utils/db.js');
 const { TwitterApi } = require('twitter-api-v2');
-const client = new TwitterApi({ clientId: process.env.CLIENT_ID, clientSecret: process.env.CLIENT_SECRET });
 const Browser = require('./puppeteer.js');
+
+const client = new TwitterApi({ clientId: process.env.CLIENT_ID, clientSecret: process.env.CLIENT_SECRET });
 const browser = new Browser(false);
+const accessTokens = new DB('access_tokens');
+const states = new Map();
 
 async function testAPI(oldRefreshToken) {
+    if (!oldRefreshToken) return;
     try {
         const {
             client: refreshedClient,
@@ -39,15 +41,13 @@ app.get('/activate', async (req, res) => {
     if (!username || !password) {
         return res.status(400).send('Provide name and pass!');
     }
-    const accessToken = await keyv.get(username);
+    const accessToken = accessTokens.get(username);
     const active = await testAPI(accessToken);
     if (active) {
         return res.status(400).send('Keys are active!');
     }
-    await keyv.set('usernames', []);
     const { url, codeVerifier, state } = client.generateOAuth2AuthLink(process.env.CALLBACK_URL, { scope: ['tweet.read', 'tweet.write', 'users.read', 'offline.access'] });
-    await keyv.set(state, { username, codeVerifier });
-    await keyv.set('usernames', [...(await keyv.get('usernames')), username]);
+    states.set(state, { username, codeVerifier });
     try {
         console.log(url);
         //await browser.run(url, username, password);
@@ -63,7 +63,7 @@ app.get('/save', async (req, res) => {
     // Extract state and code from query string
     const { state, code } = req.query;
     // Get the saved codeVerifier from session
-    const { username, codeVerifier } = await keyv.get(state);
+    const { username, codeVerifier } = states.get(state);
 
     if (!codeVerifier || !state || !code) {
         return res.status(400).send('You denied the app or your session expired!');
@@ -74,33 +74,27 @@ app.get('/save', async (req, res) => {
             // {loggedClient} is an authenticated client in behalf of some user
             // Store {accessToken} somewhere, it will be valid until {expiresIn} is hit.
             // If you want to refresh your token later, store {refreshToken} (it is present if 'offline.access' has been given as scope)
-            await keyv.set(username, refreshToken);
-
-            res.set('Content-Type', 'text/html');
-            res.send(Buffer.from(`ok`));
+            accessTokens.set(username, refreshToken);
+            res.send(`ok`);
         })
         .catch((err) => res.status(403).send(err));
 })
 
-app.post('/refresh', async (req, res) => {
-    const usernames = await keyv.get('usernames') ?? [];
-    try {
-        for (const username of usernames) {
-            const oldRefreshToken = await keyv.get(username);
-            if (!oldRefreshToken) {
-                continue;
-            }
+app.post('/refresh', async (req, res) => {;
+    for (const [username, oldRefreshToken] of accessTokens) {
+        try {
             const {
                 client: refreshedClient,
                 accessToken,
                 refreshToken: newRefreshToken,
             } = await client.refreshOAuth2Token(oldRefreshToken);
-            await keyv.set(username, newRefreshToken);
+            accessTokens.set(username, newRefreshToken);
+        } catch (err) {
+            console.log(`not a valid key for ${username}`);
+            continue;
         }
-        res.json({ status: `ok` });
-    } catch (err) {
-        res.json({ status: `no`, err: err });
     }
+    res.json({ status: `ok` });
 })
 
 app.post('/post', async (req, res) => {
@@ -109,14 +103,18 @@ app.post('/post', async (req, res) => {
     if (!username || !text) {
         return res.json({ status: 'Provide username and text' });
     }
-    const oldRefreshToken = await keyv.get(username);
+    const oldRefreshToken = accessTokens.get(username);
+    if (!oldRefreshToken) {
+        res.status(400).json({ status: `no`, err: `no access token for ${username}` });
+        return;
+    }
     try {
         const {
             client: refreshedClient,
             accessToken,
             refreshToken: newRefreshToken,
         } = await client.refreshOAuth2Token(oldRefreshToken);
-        await keyv.set(username, newRefreshToken);
+        accessTokens.set(username, newRefreshToken);
         const { data } = await refreshedClient.v2.tweet(
             text
         );
