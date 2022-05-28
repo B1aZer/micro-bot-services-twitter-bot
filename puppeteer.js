@@ -2,12 +2,10 @@ const puppeteer = require('puppeteer-extra')
 const StealthPlugin = require('puppeteer-extra-plugin-stealth')
 
 module.exports = class Browser {
-    constructor(headless = true, username, password) {
+    constructor(headless = true) {
         this.headless = headless;
-        this.username = username;
-        this.password = password;
     }
-    async run(url) {
+    async run(url, username, password) {
         const browser = await puppeteer.launch({ headless: this.headless });
         const page = await browser.newPage();
 
@@ -19,14 +17,14 @@ module.exports = class Browser {
         });
     
         // Login
-        await page.type('input[name="text"]', this.username, { delay: 100 });
+        await page.type('input[name="text"]', username, { delay: 100 });
 
         let buttons = await page.$$('div[role="button"]');
         let nextBtn = buttons[2];
         await nextBtn.click();
         await page.waitForTimeout(1000);
        
-        await page.type('input[name="password"]', this.password, { delay: 100 });
+        await page.type('input[name="password"]', password, { delay: 100 });
 
         buttons = await page.$$('div[role="button"]');
         nextBtn = buttons[2];
@@ -44,4 +42,3 @@ module.exports = class Browser {
         await browser.close()
     }
 }
-

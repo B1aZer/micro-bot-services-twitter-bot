@@ -46,17 +46,15 @@ app.get('/activate', async (req, res) => {
     }
     await keyv.set('usernames', []);
     const { url, codeVerifier, state } = client.generateOAuth2AuthLink(process.env.CALLBACK_URL, { scope: ['tweet.read', 'tweet.write', 'users.read', 'offline.access'] });
-    //console.log(url);
     await keyv.set(state, { username, codeVerifier });
     await keyv.set('usernames', [...(await keyv.get('usernames')), username]);
-    /*
-    res.set('Content-Type', 'text/html');
-    res.send(Buffer.from(`<a href="${url}">login</a>`));
-    */
     try {
-        await browser.run(url, username, password);
+        console.log(url);
+        //await browser.run(url, username, password);
     } catch (err) {
         console.log(err);
+        //res.set('Content-Type', 'text/html');
+        //res.send(Buffer.from(`<a href="${url}">login</a>`));
     }
     res.send(`ok`);
 });
