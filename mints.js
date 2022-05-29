@@ -29,8 +29,8 @@ Mints: ${els[1]}
 ${els[2]}
 `
             });
-            // wait 1m
-            await new Promise(r => setTimeout(r, 60000));
+            // wait 5m
+            await new Promise(r => setTimeout(r, 5 * 60000));
         } catch (err) {
             console.log(err);
             continue;
