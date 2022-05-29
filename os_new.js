@@ -2,6 +2,7 @@ const dotenv = require('dotenv');
 dotenv.config();
 const fs = require('fs');
 const axios = require('axios');
+const { pickRandom, removeAndReturnRandom } = require('../_utils/index.js');
 
 const path = process.env.OS_PATH;
 
@@ -20,15 +21,14 @@ async function init() {
         const el = top30[i];
         const els = el.split(process.env.LOG_FILES_SEPARATOR);
         try {
+            const osHashes = ['#opensea', '#NFTs', '#SolanaNFT', '#Solana', '#NFTProject', '#NFTCommunity'];
             await axios.post(`${process.env.TWITTER_URL}`, {
                 username: process.env.TWITTER_NEW_USERNAME,
-                text: `OpenSea Recently Added Collections:
-    
-${els[0]}
+                text: `${els[0]}
 
 Contract Address: ${els[5]}
 
-#Opensea #NFT #NFTs #Solana #SolanaNFT #NFTCommunity
+${pickRandom(osHashes, Math.random())} #NFT
     
 ${els[1]}
 `

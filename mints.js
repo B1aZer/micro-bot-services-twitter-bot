@@ -2,6 +2,7 @@ const dotenv = require('dotenv');
 dotenv.config();
 const fs = require('fs');
 const axios = require('axios');
+const { pickRandom, removeAndReturnRandom } = require('../_utils/index.js');
 
 const path = process.env.MINT_PATH;
 
@@ -16,15 +17,14 @@ async function init() {
         const el = top5[i];
         const els = el.split(process.env.LOG_FILES_SEPARATOR);
         try {
+            const osHashes = ['#Ethereum', '#NFTs', '#ETH', '#Ethereum', '#NFTProject', '#Mint'];
             await axios.post(`${process.env.TWITTER_URL}`, {
                 username: process.env.TWITTER_USERNAME,
-                text: `Ethereum Top Minted Collection Right Now:
-    
-${els[0]}
+                text: `${els[0]}
 
 Mints: ${els[1]}
 
-#Ethereum #NFT #NFTs #NFTProject #ETH #Mint
+#NFT ${pickRandom(osHashes, Math.random())}
     
 ${els[2]}
 `
