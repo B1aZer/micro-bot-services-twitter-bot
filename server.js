@@ -125,7 +125,7 @@ app.post('/post', async (req, res) => {
         const { data } = await refreshedClient.v2.tweet(
             text
         );
-        console.log(`Posted ${username} content: ${text}`);
+        //console.log(`Posted ${username} content: ${text}`);
         res.json({ status: `ok` });
     } catch (err) {
         res.json({ status: `no`, err: err });
