@@ -51,6 +51,7 @@ app.get('/activate', async (req, res) => {
     const { url, codeVerifier, state } = client.generateOAuth2AuthLink(process.env.CALLBACK_URL, { scope: ['tweet.read', 'tweet.write', 'users.read', 'offline.access'] });
     states.set(state, { username, codeVerifier });
     try {
+        console.log(username);
         console.log(url);
         //await browser.run(url, username, password);
     } catch (err) {

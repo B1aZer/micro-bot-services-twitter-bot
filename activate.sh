@@ -4,3 +4,4 @@
 curl -X GET "http://localhost:3022/activate?username=GooDeeBotFloor&password=QAWSED!@#"
 curl -X GET "http://localhost:3022/activate?username=GooDeeBotMint&password=QAWSED!@#"
 curl -X GET "http://localhost:3022/activate?username=GooDeeBotNew&password=QAWSED!@#"
+curl -X GET "http://localhost:3022/activate?username=GooDeeBotOS&password=QAWSED!@#"
