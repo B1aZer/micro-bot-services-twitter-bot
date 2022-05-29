@@ -108,7 +108,7 @@ app.post('/post', async (req, res) => {
     const username = req.body.username;
     const text = req.body.text;
     if (!username || !text) {
-        return res.json({ status: 'Provide username and text' });
+        return res.status(400).json({ status: 'Provide username and text' });
     }
     const oldRefreshToken = accessTokens.get(username);
     if (!oldRefreshToken) {
@@ -125,10 +125,12 @@ app.post('/post', async (req, res) => {
         const { data } = await refreshedClient.v2.tweet(
             text
         );
+        console.log(`posted: ${data}`);
         //console.log(`Posted ${username} content: ${text}`);
         res.json({ status: `ok` });
     } catch (err) {
-        res.json({ status: `no`, err: err });
+        console.log(`[ERROR]: ${err}`);
+        res.status(403).json({ status: `no`, err: JSON.stringify(err) });
     }
 })
 
