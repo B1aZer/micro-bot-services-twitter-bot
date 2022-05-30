@@ -6,6 +6,21 @@ const port = 3022;
 const DB = require('../_utils/db.js');
 const { TwitterApi } = require('twitter-api-v2');
 const Browser = require('./puppeteer.js');
+//ERROR HANDLING
+const { transporter, mailOptions } = require('../_utils/mail.js');
+process.on('uncaughtException', err => {
+    console.log('There was an uncaught error', err);
+    // send mail with defined transport object
+    mailOptions.subject = '✖ Twitter Server Has Crashed ✖';
+    mailOptions.text = JSON.stringify(err);
+    transporter.sendMail(mailOptions, function (error, info) {
+        if (error) {
+            return console.log(error);
+        }
+        console.log('Message sent: ' + info.response);
+        process.exit(1);
+    });
+});
 
 const client = new TwitterApi({ clientId: process.env.CLIENT_ID, clientSecret: process.env.CLIENT_SECRET });
 const browser = new Browser(false);
