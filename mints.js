@@ -17,7 +17,7 @@ async function init() {
         const el = top5[i];
         const els = el.split(process.env.LOG_FILES_SEPARATOR);
         try {
-            const osHashes = ['#Ethereum', '#NFTs', '#ETH', '#Ethereum', '#NFTProject', '#Mint'];
+            const osHashes = ['#Ethereum', '#NFTs', '#NFT', '#ETH', '#Ethereum', '#NFTProject', '#Mint', ``];
             const lines = [`Mints: ${els[1]}`, `Number of mints: ${els[1]}`, `Count: ${els[1]}`, ``];
             await axios.post(`${process.env.TWITTER_URL}`, {
                 username: process.env.TWITTER_USERNAME,
@@ -25,7 +25,7 @@ async function init() {
 
 ${removeAndReturnRandom(lines, Math.random())}
 
-#NFT ${pickRandom(osHashes, Math.random())}
+${pickRandom(osHashes, Math.random())}
     
 ${els[2]}
 `
