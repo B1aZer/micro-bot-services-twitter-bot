@@ -22,7 +22,7 @@ async function init() {
             const lines = [`Don't miss out!`, `Check it out!`, `Mark you calendars!`, `Prepare!`, `Get ready!`];
             await axios.post(`${process.env.TWITTER_URL}`, {
                 username: process.env.TWITTER_USERNAME,
-                text: `${el.name}
+                text: `${el.name} @${el.link.split('/')[el.link.split('/').length - 1]}
 
 Will be minted on ${new Date(el.date).toString()}.
 
