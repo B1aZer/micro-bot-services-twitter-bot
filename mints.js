@@ -2,7 +2,7 @@ const dotenv = require('dotenv');
 dotenv.config();
 const fs = require('fs');
 const axios = require('axios');
-const { pickRandom, removeAndReturnRandom } = require('../_utils/index.js');
+const { pickRandom, removeAndReturnRandom, randomIntFromInterval } = require('../_utils/index.js');
 
 const path = process.env.MINT_PATH;
 
@@ -18,11 +18,12 @@ async function init() {
         const els = el.split(process.env.LOG_FILES_SEPARATOR);
         try {
             const osHashes = ['#Ethereum', '#NFTs', '#ETH', '#Ethereum', '#NFTProject', '#Mint'];
+            const lines = [`Mints: ${els[1]}`, `Number of mints: ${els[1]}`, `Count: ${els[1]}`, ``];
             await axios.post(`${process.env.TWITTER_URL}`, {
                 username: process.env.TWITTER_USERNAME,
                 text: `${els[0]}
 
-Mints: ${els[1]}
+${removeAndReturnRandom(lines, Math.random())}
 
 #NFT ${pickRandom(osHashes, Math.random())}
     
@@ -30,7 +31,7 @@ ${els[2]}
 `
             });
             // wait 5m
-            await new Promise(r => setTimeout(r, 5 * 60000));
+            await new Promise(r => setTimeout(r, randomIntFromInterval(5, 9, Math.random()) * 60000));
         } catch (err) {
             console.log(err);
             continue;
