@@ -5,3 +5,6 @@ curl -X GET "http://localhost:3022/activate?username=goodeefi&password=QAWSED!@#
 curl -X GET "http://localhost:3022/activate?username=GooDeeBotMint&password=QAWSED!@#"
 curl -X GET "http://localhost:3022/activate?username=GooDeeBotNew&password=QAWSED!@#"
 curl -X GET "http://localhost:3022/activate?username=GooDeeBotOS&password=QAWSED!@#"
+curl -X GET "http://localhost:3022/activate?username=GooDeeBotLeg1&password=QAWSED!@#"
+curl -X GET "http://localhost:3022/activate?username=GooDeeBotLeg2&password=QAWSED!@#"
+curl -X GET "http://localhost:3022/activate?username=GooDeeBotLeg3&password=QAWSED!@#"
