@@ -26,6 +26,9 @@ const client = new TwitterApi({ clientId: process.env.CLIENT_ID, clientSecret: p
 const browser = new Browser(false);
 const accessTokens = new DB('access_tokens');
 const states = new Map();
+// TODO: update ids if new clients
+// save Ids on save, make me request
+const usernameToId = generateUsernameToId();
 
 async function testAPI(oldRefreshToken) {
     if (!oldRefreshToken) return;
@@ -63,14 +66,23 @@ app.get('/activate', async (req, res) => {
         return res.status(400).send('Keys are active!');
     }
     // TODO: THIS effectively resets all stored keys
-    const { url, codeVerifier, state } = client.generateOAuth2AuthLink(process.env.CALLBACK_URL, { scope: ['tweet.read', 'tweet.write', 'users.read', 'offline.access'] });
+    const { url, codeVerifier, state } = client.generateOAuth2AuthLink(process.env.CALLBACK_URL, {
+        scope: [
+            'tweet.read', 'tweet.write', 'users.read',
+            'like.read', 'like.write', 'follows.read', 'follows.write',
+            'offline.access'
+        ]
+    });
     states.set(state, { username, codeVerifier });
     try {
         console.log(username);
         console.log(url);
+        // AUTO
         //await browser.run(url, username, password);
+        // TODO: save id to usernameToId
+        //await refreshedClient.v2.me();
     } catch (err) {
-        console.log(err);
+        //console.log(JSON.stringify(err));
         //res.set('Content-Type', 'text/html');
         //res.send(Buffer.from(`<a href="${url}">login</a>`));
     }
@@ -96,12 +108,13 @@ app.get('/save', async (req, res) => {
             res.send(`ok`);
         })
         .catch((err) => {
-            console.log(err);
+            console.log(JSON.stringify(err));
             res.status(403).send(err)
         });
 })
 
-app.post('/refresh', async (req, res) => {;
+app.post('/refresh', async (req, res) => {
+    ;
     for (const [username, oldRefreshToken] of accessTokens) {
         try {
             const {
@@ -113,7 +126,7 @@ app.post('/refresh', async (req, res) => {;
             accessTokens.set(username, newRefreshToken);
         } catch (err) {
             console.log(`not a valid key for ${username}`);
-            console.log(err.data);
+            console.log(JSON.stringify(err));
             continue;
         }
     }
@@ -145,11 +158,78 @@ app.post('/post', async (req, res) => {
         //console.log(`Posted ${username} content: ${text}`);
         res.json({ status: `ok` });
     } catch (err) {
-        console.log(`[ERROR]: ${err}`);
+        console.log(`[ERROR]: ${JSON.stringify(err)}`);
         res.status(403).json({ status: `no`, err: JSON.stringify(err) });
     }
 })
 
+app.get('/search', async (req, res) => {
+    const username = req.query.username;
+    const query = req.query.q;
+    let limit = req.query.limit ?? 50;
+    limit = limit < 10 ? 10 : limit;
+    const oldRefreshToken = accessTokens.get(username);
+    if (!oldRefreshToken) {
+        res.status(400).json({ status: `no`, err: `no access token for ${username}` });
+        return;
+    }
+    const { refreshedClient, newRefreshToken } = await refreshToken(oldRefreshToken);
+    accessTokens.set(username, newRefreshToken);
+    try {
+        const jsTweets = await refreshedClient.v2.search(query, { 'max_results': `${limit}` });
+        console.log(`Searched for ${query} by ${username}`);
+        res.json(jsTweets.tweets);
+    } catch (err) {
+        console.log(`[ERROR]: ${JSON.stringify(err)}`);
+        res.status(403).json({ status: `no`, err: JSON.stringify(err) });
+    }
+});
+
+app.post('/like', async (req, res) => {
+    const username = req.body.username;
+    const tweetId = req.body.tweetId;
+    if (!username || !tweetId) {
+        return res.status(400).json({ status: 'Provide username and tweetId' });
+    }
+    const oldRefreshToken = accessTokens.get(username);
+    if (!oldRefreshToken) {
+        res.status(400).json({ status: `no`, err: `no access token for ${username}` });
+        return;
+    }
+    const userId = usernameToId[username];
+    const { refreshedClient, newRefreshToken } = await refreshToken(oldRefreshToken);
+    accessTokens.set(username, newRefreshToken);
+    try {
+        const resp = await refreshedClient.v2.like(userId, tweetId);
+        console.log(`Liked post ${tweetId} by ${username}`);
+    } catch (err) {
+        // do not break, if post is missing or something
+        console.log(`[ERROR]: ${JSON.stringify(err)}`);
+    }
+    res.json({ status: `ok` });
+});
+
 app.listen(port, () => {
     console.log(`Example app listening on port ${port}`);
 })
+
+async function refreshToken(oldRefreshToken) {
+    const {
+        client: refreshedClient,
+        accessToken,
+        refreshToken: newRefreshToken,
+    } = await client.refreshOAuth2Token(oldRefreshToken);
+    return { refreshedClient, newRefreshToken };
+}
+
+function generateUsernameToId() {
+    return {
+        goodeefi: '1508796104254578690',
+        GooDeeBotMint: '154867616',
+        GooDeeBotNew: '155234970',
+        GooDeeBotOS: '143489628',
+        GooDeeBotLeg1: '1529844550977699841',
+        GooDeeBotLeg2: '1529909334032924673',
+        GooDeeBotLeg3: '1529909870044008470'
+    }
+}
