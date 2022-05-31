@@ -38,7 +38,7 @@ Followers: ${el.followers_count}
 `;
             }).join('');
             await axios.post(`${process.env.TWITTER_URL}`, {
-                username: process.env.TWITTER_USERNAME,
+                username: process.env.TWITTER_MAIN_USERNAME,
                 text: header + `\n\n` + body + `\n` + pickRandom(osHashes, Math.random()),
             });
             // wait 10-20m
