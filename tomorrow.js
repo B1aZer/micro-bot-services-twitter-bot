@@ -18,17 +18,16 @@ async function init() {
 
     for (let i = 0; i < top10.length; i++) {
         const top5 = top10[i];
-        try {
-            const osHashes = ['#Ethereum', '#NFTs', '#NFT', '#ETH', '#Ethereum', '#NFTProject', '#Mint', ``];
-            const tomorrowDate = new Date();
-            tomorrowDate.setDate(tomorrowDate.getDate() + 1);
-            const month = tomorrowDate.toLocaleString('default', { month: 'long' });
-            const day = tomorrowDate.toLocaleDateString("en-GB", {
-                day: "2-digit",
-            });
-            const header = `Top mints for Tomorrow (${month} ${day} EST):`;
-            const body = top5.map(el => {
-                return `@${el.link.split('/')[el.link.split('/').length - 1]}
+        const osHashes = ['#Ethereum', '#NFTs', '#NFT', '#ETH', '#Ethereum', '#NFTProject', '#Mint', ``];
+        const tomorrowDate = new Date();
+        tomorrowDate.setDate(tomorrowDate.getDate() + 1);
+        const month = tomorrowDate.toLocaleString('default', { month: 'long' });
+        const day = tomorrowDate.toLocaleDateString("en-GB", {
+            day: "2-digit",
+        });
+        const header = `Top mints for Tomorrow (${month} ${day} EST):`;
+        const body = top5.map(el => {
+            return `${el.handle}
 Mint: ${new Date(el.date).toLocaleString('en-US', {
     hour: 'numeric',
     minute: 'numeric',
@@ -36,16 +35,18 @@ Mint: ${new Date(el.date).toLocaleString('en-US', {
 })}
 Followers: ${el.followers_count}
 `;
-            }).join('');
-            await axios.post(`${process.env.TWITTER_URL}/post`, {
-                username: process.env.TWITTER_MAIN_USERNAME,
-                text: header + `\n\n` + body + `\n` + pickRandom(osHashes, Math.random()),
-            });
-            // wait 10-20m
-            await new Promise(r => setTimeout(r, randomIntFromInterval(10, 20, Math.random()) * 60000));
-        } catch (err) {
-            console.log(err);
-            continue;
-        }
+        }).join('');
+        await axios.post(`${process.env.TWITTER_URL}/post`, {
+            username: process.env.TWITTER_MAIN_USERNAME,
+            text: header + `\n\n` + body + `\n` + pickRandom(osHashes, Math.random()),
+        });
+        await axios.post(`${process.env.LOGGER_URL}/save`, {
+            dir: 'twitter-mentions',
+            filename: new Date().toISOString().split('T')[0],
+            data: top5.map(el => `${el.handle}\n`).join(''),
+        });
+        // wait 10-20m
+        await new Promise(r => setTimeout(r, randomIntFromInterval(10, 20, Math.random()) * 60000));
+
     }
 }
