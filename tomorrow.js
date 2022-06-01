@@ -37,7 +37,7 @@ Mint: ${new Date(el.date).toLocaleString('en-US', {
 Followers: ${el.followers_count}
 `;
             }).join('');
-            await axios.post(`${process.env.TWITTER_URL}`, {
+            await axios.post(`${process.env.TWITTER_URL}/post`, {
                 username: process.env.TWITTER_MAIN_USERNAME,
                 text: header + `\n\n` + body + `\n` + pickRandom(osHashes, Math.random()),
             });

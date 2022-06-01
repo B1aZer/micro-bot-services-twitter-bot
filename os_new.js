@@ -23,7 +23,7 @@ async function init() {
         try {
             const osHashes = ['#opensea', '#NFTs', ' #NFT', '#SolanaNFT', '#Solana', '#NFTProject', '#NFTCommunity', ``];
             const lines = [`Contract Address: ${els[5]}`, `Contract Reference: ${els[5]}`, `Contract: ${els[5]}`, ``];
-            await axios.post(`${process.env.TWITTER_URL}`, {
+            await axios.post(`${process.env.TWITTER_URL}/post`, {
                 username: process.env.TWITTER_NEW_USERNAME,
                 text: `${els[0]}
 
