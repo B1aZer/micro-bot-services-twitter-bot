@@ -174,6 +174,10 @@ app.get('/search', async (req, res) => {
         return;
     }
     const { refreshedClient, newRefreshToken } = await refreshToken(oldRefreshToken);
+    if (!newRefreshToken) {
+        res.status(400).json({ status: `no`, err: `token was not refreshed for for ${username}` });
+        return;
+    }
     accessTokens.set(username, newRefreshToken);
     try {
         console.log(`Searched for ${query} by ${username}`);
@@ -197,7 +201,12 @@ app.post('/like', async (req, res) => {
         return;
     }
     const userId = usernameToId[username];
+    // error is handled by express
     const { refreshedClient, newRefreshToken } = await refreshToken(oldRefreshToken);
+    if (!newRefreshToken) {
+        res.status(400).json({ status: `no`, err: `token was not refreshed for for ${username}` });
+        return;
+    }
     accessTokens.set(username, newRefreshToken);
     try {
         const resp = await refreshedClient.v2.like(userId, tweetId);
@@ -225,9 +234,11 @@ async function refreshToken(oldRefreshToken) {
         // TODO: most likely a race condition where newer token already received on other req
         // let's try tp silently continue
         console.log(`[ERROR]: ${JSON.stringify(err)}`);
+        // not handled by express for some reason
         //throw new Error('Token was not refreshed!'); 
+        return { refreshedClient: null, newRefreshToken: null };
     }
-    
+
 }
 
 function generateUsernameToId() {
