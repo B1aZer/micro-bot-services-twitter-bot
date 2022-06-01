@@ -222,8 +222,10 @@ async function refreshToken(oldRefreshToken) {
         } = await client.refreshOAuth2Token(oldRefreshToken);
         return { refreshedClient, newRefreshToken };
     } catch (err) {
+        // TODO: most likely a race condition where newer token already received on other req
+        // let's try tp silently continue
         console.log(`[ERROR]: ${JSON.stringify(err)}`);
-        throw new Error('Token was not refreshed!'); 
+        //throw new Error('Token was not refreshed!'); 
     }
     
 }
