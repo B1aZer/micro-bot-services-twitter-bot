@@ -214,12 +214,18 @@ app.listen(port, () => {
 })
 
 async function refreshToken(oldRefreshToken) {
-    const {
-        client: refreshedClient,
-        accessToken,
-        refreshToken: newRefreshToken,
-    } = await client.refreshOAuth2Token(oldRefreshToken);
-    return { refreshedClient, newRefreshToken };
+    try {
+        const {
+            client: refreshedClient,
+            accessToken,
+            refreshToken: newRefreshToken,
+        } = await client.refreshOAuth2Token(oldRefreshToken);
+        return { refreshedClient, newRefreshToken };
+    } catch (err) {
+        console.log(`[ERROR]: ${JSON.stringify(err)}`);
+        throw new Error('Token was not refreshed!'); 
+    }
+    
 }
 
 function generateUsernameToId() {
