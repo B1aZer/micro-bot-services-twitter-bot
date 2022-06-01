@@ -8,6 +8,8 @@ const path = process.env.OS_PATH;
 
 init();
 
+// LOCKED
+
 async function init() {
     const command_files = fs.readdirSync(path).reverse();
     const log = fs.readFileSync(`${path}/${command_files[0]}`, 'utf8');
