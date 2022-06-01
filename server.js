@@ -176,8 +176,8 @@ app.get('/search', async (req, res) => {
     const { refreshedClient, newRefreshToken } = await refreshToken(oldRefreshToken);
     accessTokens.set(username, newRefreshToken);
     try {
-        const jsTweets = await refreshedClient.v2.search(query, { 'max_results': `${limit}` });
         console.log(`Searched for ${query} by ${username}`);
+        const jsTweets = await refreshedClient.v2.search(query, { 'max_results': `${limit}` });
         res.json(jsTweets.tweets);
     } catch (err) {
         console.log(`[ERROR]: ${JSON.stringify(err)}`);
