@@ -10,13 +10,19 @@ init();
 async function init() {
     const osHashes = ['#Ethereum', '#NFTs', '#NFT', '#ETH', '#opensea', '#NFTProject', '#NFTCommunity'];
     // throw is ok
-    const res = await axios.get(`${process.env.TWITTER_URL}/search`, {
-        params: {
-            username: process.env.TWITTER_NAME,
-            q: `${pickRandom(osHashes, Math.random())} lang:en -is:retweet -has:links`,
-            limit: 50,
-        }
-    })
+    let res;
+    try {
+        res = await axios.get(`${process.env.TWITTER_URL}/search`, {
+            params: {
+                username: process.env.TWITTER_NAME,
+                q: `${pickRandom(osHashes, Math.random())} lang:en -is:retweet -has:links`,
+                limit: 50,
+            }
+        })
+    } catch (err) {
+        console.log(`[ERROR]: ${JSON.stringify(err)}`);
+        throw new Error(`${process.env.TWITTER_NAME} is not allowed to search twitter!`)
+    }
     const tweets = res.data;
     for (const tweet of tweets) {
         try {
