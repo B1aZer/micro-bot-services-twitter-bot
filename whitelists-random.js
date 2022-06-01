@@ -12,18 +12,18 @@ async function init() {
         params: {
             name: process.env.LOG_WHITELISTS_NAME,
             id: 'recent',
-            limit: 5,
-            order: 'date',
+            limit: 10,
+            order: 'random',
             groupBy: 5,
             notIn: 'twitter-mentions',
             notInIds: [0, 1, 2, 3, 4, 5, 6], // 1 week
-            thresh: 10,
+            thresh: 100,
         }
     });
     for (let i = 0; i < top10.length; i++) {
         const top5 = top10[i];
         const osHashes = ['#Ethereum', '#NFTs', '#NFT', '#ETH', '#Ethereum', '#NFTProject', '#Mint', ``];
-        const header = `Most recent NFT whitelists:`;
+        const header = `Trending NFT whitelists:`;
         const body = top5.map(el => {
             return `${el.handle}
 Created: ${new Date(el.date).toLocaleString('en-US', {
@@ -44,5 +44,7 @@ Followers: ${el.followers_count}
             filename: new Date().toISOString().split('T')[0],
             data: top5.map(el => `${el.handle}\n`).join(''),
         });
+        // wait 4-8h
+        await new Promise(r => setTimeout(r, randomIntFromInterval(4, 8, Math.random()) * 60 * 60 * 1000));
     }
 }
