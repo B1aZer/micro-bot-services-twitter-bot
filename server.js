@@ -131,6 +131,20 @@ app.get('/search', async (req, res) => {
     });
 });
 
+// 100 by default
+// 15 requests per 15-minute
+app.get('/followers', async (req, res) => {
+    const username = req.query.username;
+    const userId = req.query.userId;
+    if (!username || !userId) {
+        return res.status(400).json({ status: 'Provide username and userId' });
+    }
+    await makeApiRequest(username, res, async (client) => {
+        const { data: users } = await client.v2.followers(userId);
+        res.json(users);
+    });
+});
+
 app.get('/id', async (req, res) => {
     const username = req.query.username;
     const twitterHandle = req.query.twitterHandle;
@@ -168,6 +182,20 @@ app.post('/follow', async (req, res) => {
         res.json({ status: `ok` });
     });
 });
+
+app.post('/unfollow', async (req, res) => {
+    const username = req.body.username;
+    const userId = req.body.userId;
+    if (!username || !userId) {
+        return res.status(400).json({ status: 'Provide username and userId' });
+    }
+    await makeApiRequest(username, res, async (client, id) => {
+        await client.v2.unfollow(id, userId);
+        console.log(`Unfollow user ${userId} by ${username}`);
+        res.json({ status: `ok` });
+    });
+});
+
 
 app.listen(port, () => {
     console.log(`Example app listening on port ${port}`);
