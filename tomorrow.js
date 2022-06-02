@@ -18,7 +18,7 @@ async function init() {
 
     for (let i = 0; i < top10.length; i++) {
         const top5 = top10[i];
-        const osHashes = ['#Ethereum', '#NFTs', '#NFT', '#ETH', '#Ethereum', '#NFTProject', '#Mint', ``];
+        const osHashes = ['#Ethereum', '#NFTs', '#ETH', '#Ethereum', '#NFTProject', '#Mint', ``];
         const tomorrowDate = new Date();
         tomorrowDate.setDate(tomorrowDate.getDate() + 1);
         const month = tomorrowDate.toLocaleString('default', { month: 'long' });
@@ -38,7 +38,7 @@ Followers: ${el.followers_count}
         }).join('');
         await axios.post(`${process.env.TWITTER_URL}/post`, {
             username: process.env.TWITTER_MAIN_USERNAME,
-            text: header + `\n\n` + body + `\n` + pickRandom(osHashes, Math.random()),
+            text: header + `\n\n` + body + `\n` + `${pickRandom(osHashes, Math.random())} #NFT`,
         });
         await axios.post(`${process.env.LOGGER_URL}/save`, {
             dir: 'twitter-mentions',
