@@ -33,7 +33,7 @@ async function init() {
                     username: process.env.TWITTER_NAME,
                     userId: `${id}`,
                 });
-                console.log(`user ${process.env.TWITTER_NAME} followed ${user}`);
+                console.log(`user ${process.env.TWITTER_NAME} followed ${user.handle}`);
                 // wait 1-5s
                 await new Promise(r => setTimeout(r, randomIntFromInterval(1, 5, Math.random()) * 1000));
             } catch (err) {
