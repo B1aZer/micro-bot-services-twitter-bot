@@ -131,15 +131,40 @@ app.get('/search', async (req, res) => {
     });
 });
 
+app.get('/id', async (req, res) => {
+    const username = req.query.username;
+    const twitterHandle = req.query.twitterHandle;
+    if (!username || !twitterHandle) {
+        return res.status(400).json({ status: 'Provide username and twitterHandle' });
+    }
+    await makeApiRequest(username, res, async (client) => {
+        const { data: { id } } = await client.v2.userByUsername(twitterHandle);
+        res.json({ id });
+    });
+});
+
 app.post('/like', async (req, res) => {
     const username = req.body.username;
     const tweetId = req.body.tweetId;
     if (!username || !tweetId) {
         return res.status(400).json({ status: 'Provide username and tweetId' });
     }
-    await makeApiRequest(username, res, async (client) => {
-        await client.v2.like(userId, tweetId);
+    await makeApiRequest(username, res, async (client, id) => {
+        await client.v2.like(id, tweetId);
         console.log(`Liked post ${tweetId} by ${username}`);
+        res.json({ status: `ok` });
+    });
+});
+
+app.post('/follow', async (req, res) => {
+    const username = req.body.username;
+    const userId = req.body.userId;
+    if (!username || !userId) {
+        return res.status(400).json({ status: 'Provide username and userId' });
+    }
+    await makeApiRequest(username, res, async (client, id) => {
+        await client.v2.follow(id, userId);
+        console.log(`Follow user ${userId} by ${username}`);
         res.json({ status: `ok` });
     });
 });
@@ -150,9 +175,9 @@ app.listen(port, () => {
 
 async function makeApiRequest(username, res, twFn) {
     try {
-        const { accessToken } = accessTokens.get(username);
+        const { id, accessToken } = accessTokens.get(username);
         const client = new TwitterApi(accessToken);
-        await twFn(client);
+        await twFn(client, id);
     } catch (err) {
         console.log(`[ERROR] ${username}: error in twitter request ${JSON.stringify(err)}`);
         res.status(403).json({ status: `no`, err: JSON.stringify(err) });
