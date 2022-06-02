@@ -9,7 +9,6 @@ init();
 
 async function init() {
     const osHashes = ['#Ethereum', '#NFTs', '#NFT', '#ETH', '#opensea', '#NFTProject', '#NFTCommunity'];
-    // throw is ok
     let res;
     try {
         res = await axios.get(`${process.env.TWITTER_URL}/search`, {
