@@ -107,12 +107,14 @@ app.post('/refresh', async (req, res) => {
 app.post('/post', async (req, res) => {
     const username = req.body.username;
     const text = req.body.text;
+    const params = req.body.params;
     if (!username || !text) {
         return res.status(400).json({ status: 'Provide username and text' });
     }
     await makeApiRequest(username, res, async (client) => {
         const { data } = await client.v2.tweet(
-            text
+            text,
+            params
         );
         console.log(`posted ${username}: ${JSON.stringify(data)}`);
         res.json({ status: `ok` });
@@ -154,6 +156,20 @@ app.get('/id', async (req, res) => {
     await makeApiRequest(username, res, async (client) => {
         const { data: { id } } = await client.v2.userByUsername(twitterHandle);
         res.json({ id });
+    });
+});
+
+app.get('/user', async (req, res) => {
+    const username = req.query.username;
+    const userId = req.query.userId;
+    const params = JSON.parse(req.query.params);
+    console.log(params);
+    if (!username || !userId) {
+        return res.status(400).json({ status: 'Provide username and userId' });
+    }
+    await makeApiRequest(username, res, async (client) => {
+        const { data: user } = await client.v2.user(userId, params);
+        res.json(user);
     });
 });
 
